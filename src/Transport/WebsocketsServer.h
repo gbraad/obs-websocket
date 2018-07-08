@@ -1,30 +1,38 @@
 
-#ifndef OBS_WEBSOCKET_WEBSOCKETSSERVER_H
-#define OBS_WEBSOCKET_WEBSOCKETSSERVER_H
+#pragma once
 
 #include <libwebsockets.h>
-#include <QtCore/QThread>
+#include <QThread>
+#include <QMap>
 
 class WebsocketsServer : QThread
 {
-  public:
-    WebsocketsServer(int port, QString protocolName);
-    ~WebsocketsServer();
-    static int wsCallback(
-            struct lws* wsInstance,
-            enum lws_callback_reasons reason,
-            void* userData,
-            void* in,
-            size_t len
-    );
+Q_OBJECT
 
-  private:
-    void run() override;
+public:
+	WebsocketsServer(QString protocolName);
+	~WebsocketsServer();
 
-    int _port;
-    QString _protocolName;
-    struct lws_context* _lwsContext;
+	void setPort(int port) {
+		this->_port = port;
+	}
+
+signals:
+	void newClientConnected();
+
+private:
+	static int wsCallback(
+		struct lws* wsInstance,
+		enum lws_callback_reasons reason,
+		void* userData,
+		void* in,
+		size_t len
+	);
+
+	void run() override;
+
+	int _port;
+	QString _protocolName;
+	struct lws_context* _lwsContext;
+	QMap<struct lws*, void*> remoteClients;
 };
-
-
-#endif //OBS_WEBSOCKET_WEBSOCKETSSERVER_H
